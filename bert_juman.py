@@ -26,11 +26,16 @@ class BertWithJumanModel():
     def _preprocess_text(self, text):
         return text.replace(" ", "")  # for Juman
 
-    def get_sentence_embedding(self, text, pooling_layer=-2, pooling_strategy="REDUCE_MEAN"):
-        preprocessed_text = self._preprocess_text(text)
-        tokens = self.juman_tokenizer.tokenize(preprocessed_text)
-        bert_tokens = self.bert_tokenizer.tokenize(" ".join(tokens))
-        ids = self.bert_tokenizer.convert_tokens_to_ids(["[CLS]"] + bert_tokens[:126] + ["[SEP]"]) # max_seq_len-2
+    def get_sentence_embedding(self, text, pooling_layer=-2, pooling_strategy="REDUCE_MEAN", is_tokenized=False):
+
+        if is_tokenized:
+            bert_tokens = self.bert_tokenizer.tokenize(" ".join(text))
+        else:
+            preprocessed_text = self._preprocess_text(text)
+            tokens = self.juman_tokenizer.tokenize(preprocessed_text)
+            bert_tokens = self.bert_tokenizer.tokenize(" ".join(tokens))
+
+        ids = self.bert_tokenizer.convert_tokens_to_ids(["[CLS]"] + bert_tokens[:126] + ["[SEP]"])  # max_seq_len-2
         tokens_tensor = torch.tensor(ids).reshape(1, -1)
 
         if self.use_cuda:
